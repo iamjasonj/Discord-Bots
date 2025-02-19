@@ -20,8 +20,8 @@ def send_to_discord(news_events):
     message = "Today's ForexFactory News Events:\n" + "\n".join(
         f"{event['time']} | {event['impact']} | {event['title']}" for event in news_events)
     data = {'content': message}
-    scraper = cloudscraper.create_scraper()
-    response = scraper.post(DISCORD_WEBHOOK_URL, json=data, verify=certifi.where())
+  scraper = cloudscraper.create_scraper()
+response = scraper.get(FOREX_FACTORY_URL, headers=HEADERS, verify=certifi.where(), timeout=10)
     if response.status_code == 204:
         print('Message sent successfully.')
     else:
