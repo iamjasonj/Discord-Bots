@@ -1,7 +1,8 @@
-import requests
+import cloudscraper  # Use cloudscraper to bypass Cloudflare protection
+import certifi       # For SSL certificate verification
 from bs4 import BeautifulSoup, Tag
 import logging
-from config import FOREX_URL, HEADERS, IMPACT_MAPPING, TODAY, TIMEZONE
+from config import DISCORD_WEBHOOK_URL, CHANNEL_ID, DEBUG_MODE, FOREX_FACTORY_URL, HEADERS, IMPACT_MAPPING, TODAY, TIMEZONE
 import datetime
 from typing import List, Dict, Any, Optional
 
