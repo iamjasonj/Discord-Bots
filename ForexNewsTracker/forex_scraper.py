@@ -59,7 +59,7 @@ class ForexScraper:
 
                     # Extract all cells
                     cells = {
-                        'time': tr.select_one("td.calendar__cell.calendar__time.time"),
+                        'date': tr.select_one("td.calendar__cell.calendar__date.date"),
                         'currency': tr.select_one("td.calendar__cell.calendar__currency.currency"),
                         'impact': tr.select_one("td.calendar__cell.calendar__impact.impact span"),
                         'event': tr.select_one("td.calendar__cell.calendar__event.event"),
@@ -81,7 +81,7 @@ class ForexScraper:
 
                     # Create event data
                     event_data = {
-                        "time": cells['time'].get_text(strip=True) if cells['time'] else "All Day",
+                        "date": cells['date'].get_text(strip=True) if cells['date'] else "All Day",
                         "currency": cells['currency'].get_text(strip=True),
                         "event": cells['event'].get_text(strip=True),
                         "impact": self._get_impact(cells['impact'])
@@ -102,7 +102,7 @@ class ForexScraper:
                     continue
 
             logging.info(f"\nTotal events found: {len(events)}")
-            return sorted(events, key=lambda x: x['time'] if x['time'] != 'All Day' else '00:00')
+            return sorted(events, key=lambda x: x['date'] if x['date'] != 'All Day' else '00:00')
 
         except Exception as e:
             logging.error(f"Error fetching forex data: {str(e)}", exc_info=True)
