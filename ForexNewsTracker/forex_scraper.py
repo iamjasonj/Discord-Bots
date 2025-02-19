@@ -19,11 +19,13 @@ class ForexScraper:
             logging.info("\n=== STARTING FOREX FACTORY SCRAPE ===")
             logging.info(f"Current date (EST): {TODAY}")
 
-            response = requests.get(FOREX_URL, headers=HEADERS, timeout=10)
+            # Use cloudscraper instead of requests
+            scraper = cloudscraper.create_scraper()
+            response = scraper.get(FOREX_FACTORY_URL, headers=HEADERS, verify=certifi.where(), timeout=10)
             response.raise_for_status()
 
             # Parse the HTML and locate the calendar table
-            soup = BeautifulSoup(response.text, "lxml")
+            soup = BeautifulSoup(response.content, "lxml")
             calendar_table = soup.find("table", class_="calendar__table")
             if not calendar_table:
                 logging.error("❌ No calendar table found!")
@@ -63,7 +65,7 @@ class ForexScraper:
                         continue
                     event_title = event_cell.get_text(strip=True)
 
-                    # Extract impact information (e.g. folder color, such as "red")
+                    # Extract impact information (e.g., folder color such as "red")
                     impact_span = tr.select_one("td.calendar__cell.calendar__impact.impact span")
                     impact = self._get_impact(impact_span)
 
@@ -82,7 +84,7 @@ class ForexScraper:
                     continue
 
             logging.info(f"\nTotal events found for TODAY: {len(events)}")
-            # Optionally sort events by time (if time strings are comparable)
+            # Optionally sort events by time (if the time strings are comparable)
             return sorted(events, key=lambda x: x['time'])
 
         except Exception as e:
