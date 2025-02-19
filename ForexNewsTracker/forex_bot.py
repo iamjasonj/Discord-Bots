@@ -1,7 +1,7 @@
 import discord
 import asyncio
 import logging
-from config import DISCORD_TOKEN, CHANNEL_ID, DEBUG_MODE
+from config import DISCORD_WEBHOOK_URL, CHANNEL_ID, DEBUG_MODE
 from forex_scraper import ForexScraper
 from utils import setup_logging, is_posting_time
 
