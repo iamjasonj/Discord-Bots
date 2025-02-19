@@ -13,11 +13,12 @@ class ForexScraper:
     async def fetch_daily_news(self) -> List[Dict[str, Any]]:
         """
         Fetch and parse the daily Forex Factory economic calendar,
-        extracting only the event title, time, and impact (folder color).
+        extracting only the event title, time, and impact (folder color)
+        for events that match TODAY.
         """
         try:
             logging.info("\n=== STARTING FOREX FACTORY SCRAPE ===")
-            logging.info(f"Current date (EST): {TODAY}")
+            logging.info(f"Target date (TODAY): {TODAY}")
 
             # Use cloudscraper instead of requests
             scraper = cloudscraper.create_scraper()
@@ -47,7 +48,7 @@ class ForexScraper:
                         current_date = date_cell.get_text(strip=True)
                         logging.info(f"Row {row_num}: New date detected: '{current_date}'")
                     
-                    # Only process rows if the current date matches our target (TODAY)
+                    # Only process rows if the current_date matches our target (TODAY)
                     if current_date:
                         logging.info(f"Row {row_num}: Comparing current_date '{current_date}' with TODAY '{TODAY}'")
                         if current_date.lower() != TODAY.lower():
