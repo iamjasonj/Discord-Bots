@@ -1,35 +1,28 @@
-import pytz
-import os
-import datetime
+# config.py
 
-# Bot Configuration
-DISCORD_TOKEN = os.environ["DISCORD_TOKEN"]
-CHANNEL_ID = int(os.environ["DISCORD_CHANNEL_ID"])  # Convert to int since Discord IDs are numbers
+# Use the webhook URL directly instead of a bot token.
+DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1341735209757839371/5AjOcm8f57EGZYNQMhr5wB1Uh3rXMSvUuw3P9RYWffkX-JG82SCioOhsp1ciLsTDoLx-"
 
-# Forex Factory Configuration
-FOREX_URL = "https://www.forexfactory.com/calendar.php"
-TIMEZONE = pytz.timezone("US/Eastern")
+# Your target channel id, if you need it elsewhere in your code.
+CHANNEL_ID = "1341719312976711752"
 
-# Get today's date
-TODAY = datetime.datetime.now(TIMEZONE).strftime("%a %b %d")
-
-# Schedule Configuration
-DAILY_POST_HOUR = 7
-DAILY_POST_MINUTE = 0
-
-# Debug Configuration
-DEBUG_MODE = os.environ.get("DEBUG_MODE", "false").lower() == "true"
-
-# Headers for requests
+# Other configuration settings:
+DEBUG_MODE = True
+FOREX_FACTORY_URL = 'https://www.forexfactory.com/calendar'
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
-    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-    "Accept-Language": "en-US,en;q=0.9"
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
 }
 
-# Impact level mapping
+# Impact mapping if you're mapping classes to human-friendly names
 IMPACT_MAPPING = {
-    "high": "🔴 Major",
-    "medium": "🟠 Medium",
-    "low": "🟡 Low"
+    "red": "Major",
+    "ora": "Medium",
+    "yel": "Low",
+    "gra": "Non-Economic"
 }
+
+# Today should match the date string on the calendar page, e.g. "Feb 19"
+TODAY = "Feb 19"
+
+# TIMEZONE, if you need it, for example:
+TIMEZONE = "America/New_York"
