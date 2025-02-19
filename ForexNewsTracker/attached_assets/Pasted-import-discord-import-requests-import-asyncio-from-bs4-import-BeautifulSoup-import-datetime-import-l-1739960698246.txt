@@ -1,0 +1,130 @@
+import discord
+import requests
+import asyncio
+from bs4 import BeautifulSoup
+import datetime
+import logging
+import pytz
+
+# ✅ Logging Configuration
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s',
+                    filename='forex_news.log',
+                    filemode='w')
+
+# ✅ Discord Bot Configuration
+DISCORD_TOKEN = "YOUR_DISCORD_BOT_TOKEN"  # Replace with your bot token
+CHANNEL_ID = YOUR_CHANNEL_ID  # Replace with your Announcement Channel ID
+
+# ✅ Forex Factory URL (latest economic calendar)
+FOREX_URL = "https://www.forexfactory.com/calendar.php"
+
+# ✅ Track posted news to avoid duplicates
+posted_events = set()
+
+# ✅ Set up Discord bot
+intents = discord.Intents.default()
+client = discord.Client(intents=intents)
+
+async def fetch_daily_forex_news():
+    """Fetches the Forex Factory economic calendar for today only."""
+    logging.info("🔄 Fetching today's Forex Factory news...")
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
+    }
+
+    try:
+        response = requests.get(FOREX_URL, headers=headers, timeout=10)
+        response.raise_for_status()  # Raise error for bad responses
+    except requests.exceptions.RequestException as e:
+        logging.error(f"⚠️ Request failed: {e}")
+        return []
+
+    # ✅ Parse HTML
+    soup = BeautifulSoup(response.text, "lxml")
+    table = soup.find("table", class_="calendar__table")
+
+    if not table:
+        logging.error("❌ No table found! Possible website structure change.")
+        return []
+
+    # ✅ Extract today's events only
+    trs = table.select("tr.calendar__row.calendar_row")
+    today = datetime.datetime.now(pytz.timezone("US/Eastern")).strftime("%a %b %d")  # e.g., "Tue Feb 20"
+    
+    events = []
+
+    for tr in trs:
+        try:
+            # ✅ Extract key information
+            date = tr.select_one("td.calendar__cell.calendar__date.date").text.strip()
+            time_ = tr.select_one("td.calendar__cell.calendar__time.time").text.strip() or "All Day"
+            event = tr.select_one("td.calendar__cell.calendar__event.event").text.strip()
+            impact_element = tr.select_one("td.calendar__cell.calendar__impact.impact span")
+            impact_color = impact_element["class"][1] if impact_element else "unknown"
+
+            # ✅ Check if event is for today
+            if date == today:
+                # ✅ Convert impact color class to human-readable (Red = Major, Orange = Medium, Yellow = Low)
+                impact_mapping = {
+                    "high": "🔴 Major",
+                    "medium": "🟠 Medium",
+                    "low": "🟡 Low"
+                }
+                impact = impact_mapping.get(impact_color, "⚪ Unknown")
+
+                # ✅ Construct event ID (prevents duplicates)
+                event_id = f"{date}-{time_}-{event}"
+
+                if event_id not in posted_events:
+                    posted_events.add(event_id)
+                    events.append({
+                        "date": date,
+                        "time": time_,
+                        "event": event,
+                        "impact": impact
+                    })
+        except Exception as e:
+            logging.error(f"⚠️ Error parsing row: {e}")
+
+    return events
+
+async def post_daily_news_to_discord():
+    """Fetches daily Forex Factory news and posts it to Discord at 7:00 AM EST."""
+    await client.wait_until_ready()
+    channel = client.get_channel(CHANNEL_ID)
+
+    if not channel:
+        logging.error("❌ Invalid channel ID! Ensure the bot has correct permissions.")
+        return
+
+    while not client.is_closed():
+        # ✅ Get current time in EST
+        now = datetime.datetime.now(pytz.timezone("US/Eastern"))
+        
+        if now.hour == 7 and now.minute == 0:  # Run at 7:00 AM EST
+            news_events = await fetch_daily_forex_news()
+
+            if news_events:
+                message = "**📢 Today's Forex Economic Calendar**\n"
+                for news in news_events:
+                    message += f"🕒 **{news['time']}** | {news['impact']} | **{news['event']}**\n"
+
+                message += "\n🔗 [View Full Calendar](https://www.forexfactory.com/calendar.php)"
+                await channel.send(message)
+                logging.info("✅ Forex news updates sent to Discord.")
+
+            # ✅ Wait 24 hours before next check
+            await asyncio.sleep(86400)
+        else:
+            # ✅ Sleep for 60 seconds before checking again
+            await asyncio.sleep(60)
+
+@client.event
+async def on_ready():
+    print(f"✅ Bot is online as {client.user}")
+    client.loop.create_task(post_daily_news_to_discord())
+
+# ✅ Run the bot
+client.run(DISCORD_TOKEN)
